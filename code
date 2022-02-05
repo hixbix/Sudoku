@@ -1,0 +1,398 @@
+import java.util.*;
+public class Sudoku {
+static Scanner input = new Scanner(System.in);
+
+static String choice = "";
+static String place = "";
+static String number = "";
+static String gameWhile = "";
+static int x = 0;
+static int y = 0;
+
+public static void main(String[] args) {
+	
+	// 35 - normal
+	// 25 - hard
+	
+	while(!gameWhile.equals("no")) {
+			
+		System.out.println("Welcome to the Sudoku game!");
+		sleep(2);
+		System.out.println("Please choose which level you'd like to play(enter 1 or 2):");
+		System.out.println("1. Normal");
+		System.out.println("2. Hard");
+		System.out.print("choice: ");
+		choice = input.nextLine();
+		
+		while(!choice.equals("1")&&!choice.equals("2")) {
+			System.out.print("Incorrect input! please try again: ");
+			choice = input.nextLine();
+			System.out.println();
+		}
+		
+		if(choice.equals("1")) {
+			System.out.println("Here is the puzzle:");
+			System.out.println();
+			System.out.println("Level: Normal.");
+			int[][]board = create(35);
+			print(board);
+			
+			while(!check(board)) {
+				System.out.println();
+				System.out.println();
+				tryNumber(board);
+				while(!canPut(board, x, y,Integer.valueOf(number))) {
+					System.out.println("Wrong!!! you cannot put there the number "+ Integer.valueOf(number));
+					System.out.println("Please try again: ");
+					System.out.println();
+					System.out.println();
+					tryNumber(board);
+				}
+				board[x][y] = Integer.valueOf(number);
+				System.out.println();
+				print(board);	
+			}
+			System.out.println();
+			System.out.println("Congratulations! you have completed all the puzzle correctly :)");
+			System.out.println("Good job!");
+			System.out.println();
+			System.out.println();
+
+		}
+		
+		else if(choice.equals("2")) {
+			System.out.println("Here is the puzzle:");
+			System.out.println();
+			System.out.println("Level: Hard.");
+			int[][]board = create(25);
+			print(board);
+			
+			while(!solve_help(board)) {
+				System.out.println();
+				System.out.println();
+				tryNumber(board);
+				while(!canPut(board, x, y,Integer.valueOf(number))) {
+					System.out.println("Wrong!!! you cannot put there the number "+ Integer.valueOf(number));
+					System.out.println("Please try again: ");
+					System.out.println();
+					System.out.println();
+					tryNumber(board);
+				}
+				board[x][y] = Integer.valueOf(number);
+				System.out.println();
+				print(board);
+			}
+			System.out.println();
+			System.out.println("Congratulations! you have completed all the puzzle correctly :)");
+			System.out.println("Good job!");
+			System.out.println();
+			System.out.println();
+		}
+		
+		
+		System.out.println("would you like to get out or play another puzzel?");
+		System.out.println("1) enter 'yes' to keep play.");
+		System.out.println("2) enter 'no' to quit.'");
+		System.out.print("choice: ");
+		gameWhile = input.nextLine();
+		while(!gameWhile.equals("no") && !gameWhile.equals("yes")) {
+			System.out.print("Incorrect input! please try again: ");
+			gameWhile = input.nextLine();
+			System.out.println();
+		}
+		
+		
+	}
+
+	
+	
+
+	}
+
+	public static boolean noString(String str) {
+		for(int i=0; i<str.length(); i++) {
+			if(str.charAt(i)!='1'&&str.charAt(i)!='2'&&str.charAt(i)!='3'&&str.charAt(i)!='4'&&str.charAt(i)!='5'&&str.charAt(i)!='6'&&str.charAt(i)!='7'&&str.charAt(i)!='8'&&
+					str.charAt(i)!='9') {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	public static void tryNumber(int[][]board) {
+		System.out.print("enter place(F-11,L-99): ");
+		place = input.next();
+		while(!noString(place)||Integer.valueOf(place)<11 || Integer.valueOf(place)>99 || Integer.valueOf(place)%10==0) {
+			System.out.print("Incorrect input! please try again: ");
+			place = input.next();
+			System.out.println();
+		}
+		findPlace(Integer.valueOf(place));
+		while(board[x][y]!=0) {
+			System.out.print("Error! the place is already taken please try another one: ");
+			place = input.next();
+			System.out.println();
+			findPlace(Integer.valueOf(place));
+		}
+		
+		System.out.println();
+
+		System.out.print("enter number: ");
+		number = input.next();
+		while(!number.equals("1")&&!number.equals("2")&&!number.equals("3")&&!number.equals("4")&&!number.equals("5")&&!number.equals("6")&&!number.equals("7")
+				&&!number.equals("8")&&!number.equals("9")) {
+			System.out.print("Incorrect input! please try again: ");
+			number = input.nextLine();
+			System.out.println();
+		}
+		
+		
+	}
+
+	public static void print(int[][]arr) {
+		
+		for(int i=0;i<arr.length;i++) {
+			if(i%3 ==0) System.out.println(" "+"------------------------");
+			for(int j=0;j<arr[i].length;j++) {
+				if(j%3==0) System.out.print(" "+"|");
+				if(arr[i][j] == 0) System.out.print("  ");
+				else System.out.print(" "+arr[i][j]);
+				if(j+1 == arr.length) System.out.print(" "+"|");
+			}
+			System.out.println();
+		}
+		System.out.println(" "+"------------------------");
+		
+	}
+	
+	public static void sleep(int s) {
+		try {
+			Thread.sleep(s*1000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static boolean check(int[][]arr) {
+		int sumr =0; // sum for row
+		int sumc = 0; // sum for column 
+		int sums = 0; // sum for square 
+		for(int i=0; i<arr.length;i++) {
+			for(int j=0; j<arr[i].length;j++) {
+				if(i%3==0&&j%3==0) {
+					int h1 = i+3;
+					int h2 = j+3;
+					for(int x=i;x<h1;x++) {
+						for(int y=j;y<h2;y++) {
+							if(arr[x][y]>9||arr[x][y]<1) return false;
+							sums += arr[x][y];
+						}
+					}
+					if(sums!=45) return false;
+					sums = 0;
+				}
+				for(int k=0;k<arr.length;k++) {
+					if(arr[k][j]>9||arr[k][j]<1) return false;
+					sumc += arr[k][j];
+				}
+				if(sumc!=45) return false;
+				sumc=0;
+				if(arr[i][j]>9||arr[i][j]<1) return false;
+				sumr += arr[i][j];
+			}
+			if(sumr!=45) return false;
+			sumr = 0;
+		}
+		return true;
+	}
+	
+	
+	public static boolean canPut(int[][]arr,int x, int y, int n){
+		for(int i=0; i<arr.length;i++ ) {
+			if(arr[i][y]==n) return false;
+		}
+		for(int j=0; j<arr.length;j++) {
+			if(arr[x][j]==n) return false;
+		}
+		
+		for(int i=0;i<arr.length;i++) {
+			for(int j=0;j<arr[i].length;j++) {
+				if(i%3==0&&j%3==0) {
+					boolean kayam = false;
+					boolean nekuda = false;
+					int h1 =i+3;
+					int h2 =j+3;
+					for(int a=i;a<h1;a++) {
+						for(int b=j;b<h2;b++) {
+							if(arr[a][b]==n) kayam = true;
+							if(a==x&&b==y) nekuda = true;
+						}
+					}
+					if(kayam&&nekuda) return false;
+				}
+			}
+		}
+		return true;
+	}
+	
+	public static boolean solve_help2(int[][]arr) {
+		int[][] help = new int[9][9];
+		for(int i =0; i<9 ; i++) {
+			for(int j = 0; j<9; j++) {
+				help[i][j] = arr[i][j];
+			}
+		}
+		return solve_help(help);
+	}
+	public static boolean solve_help(int[][]arr){
+		for(int row = 0; row< arr.length; row++) {
+			for(int column = 0; column < arr.length; column++) {
+				if(arr[row][column] == 0) {
+					for(int a = 1; a <= 9; a++) {
+						if(canPut(arr, row, column, a)) {
+							arr[row][column] = a;
+							if(solve_help(arr)) {
+								return true;
+							}
+							else {
+								arr[row][column] = 0;
+							}
+						}
+					}
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
+	
+	
+	
+	public static boolean bool = false;
+	
+	public static int[][] create(int num){
+		int[][] result = new int[9][9];
+		int[][]arr = new int[9][9];
+		
+		do{
+			
+			for(int i=0;i<arr.length;i++) {
+				for(int j=0;j<arr[i].length;j++) {
+					arr[i][j] = 0;
+				}
+			}
+			
+			int count = 0;
+			while(count < num) {
+				int x = (int)(Math.random()*9);
+				int y = (int)(Math.random()*9);
+				while(arr[x][y]!=0) {
+					x = (int)(Math.random()*9);
+					y = (int)(Math.random()*9);
+				}
+				int n = (int)(Math.random()*9)+1;
+				if(canPut(arr,x,y,n)) {
+					arr[x][y] = n;
+					count++;
+				}
+			}
+			
+			for(int i=0;i<arr.length;i++) {
+				for(int j=0;j<arr[i].length;j++) {
+					result[i][j] = arr[i][j];
+				}
+			}
+			count12 = 0;
+			bool = moreThanOne(arr);
+		}while(!solve_help(arr)||bool);
+		
+		return result;
+	}
+	
+public static int count12 = 0;
+	
+	public static boolean moreThanOne(int[][]arr) {
+		int[][]board = new int[9][9];
+		for(int r=0; r<9 ;r++) {
+			for(int c=0;c<9;c++) {
+				board[r][c] = arr[r][c];
+			}
+		}
+		solveHowMany(board);
+		if(count12 == 1) return false;
+		else return true;
+	}
+	
+	public static void solveHowMany(int[][]arr) {
+		for(int row = 0; row< arr.length; row++) {
+			for(int column = 0; column < arr.length; column++) {
+				if(arr[row][column] == 0) {
+					for(int a = 1; a <= 9; a++) {
+						if(canPut(arr, row, column, a)) {	
+							arr[row][column] = a;
+							solveHowMany(arr);
+							arr[row][column] = 0;
+						}
+					}
+					return;
+				}
+			}
+		}
+		count12++;
+	}
+	
+	public static void findPlace(int n) {
+		int countR = 0;
+		int countM = 0;
+		for(int i =0; i<9; i++) {
+			for(int j=0; j<9; j++) {
+				if(i%3==0&&j%3==0) {
+					countR++;
+					if(countR == n/10) {
+						int h1 = i+3;
+						int h2 = j+3;
+						for(int a=i;a<h1;a++) {
+							for(int b=j;b<h2;b++) {
+								countM++;
+								if(countM == n%10) {
+									x = a;
+									y = b;
+								}
+							}
+						}
+					}
+					
+				}
+			}
+		}
+	}
+	
+	
+	public static boolean solve(int[][]arr) {
+		for(int row = 0; row< arr.length; row++) {
+			for(int column = 0; column < arr.length; column++) {
+				if(arr[row][column] == 0) {
+					for(int a = 1; a <= 9; a++) {
+						if(canPut(arr, row, column, a)) {	
+							arr[row][column] = a;
+							if(solve(arr)) {
+								return true;
+							}else {
+								arr[row][column] = 0;
+							}
+						}
+					}
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+	
+	
+	
+
+	
+	
+}
